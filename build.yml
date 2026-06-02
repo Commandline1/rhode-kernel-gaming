@@ -1,0 +1,25 @@
+name: Compilar Kernel Moto G52
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar Codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Ferramentas
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc build-essential libncurses5-dev libssl-dev xz-utils git bison flex libelf-dev clang lld llvm
+
+      - name: Baixar Toolchain
+        run: |
+          git clone https://googlesource.com --depth=1 -b master-kernel build-tools/clang
+
+      - name: Compilar
+        run: |
+          export PATH=$(pwd)/build-tools/clang/clang-r498229b/bin:$PATH
+          make ARCH=arm64 SUBARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang CLANG_TRIPLE=aarch64-linux-gnu- defconfig.mk
+          make ARCH=arm64 SUBARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang CLANG_TRIPLE=aarch64-linux-gnu- -j$(nproc)
